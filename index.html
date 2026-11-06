@@ -65,6 +65,12 @@
     text-shadow:0 0 26px rgba(255,45,120,.55),0 0 70px rgba(34,226,255,.35)}
   .logo span{display:block;font-size:.58em;letter-spacing:.34em;margin-top:.12em;margin-left:.2em}
   .tag{margin-top:14px;font-size:clamp(13px,1.6vw,17px);letter-spacing:.42em;color:#c6a8ff;padding-left:.42em}
+  .tilt-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+  .tilt-chip{padding:7px 14px;border-radius:999px;border:1px solid rgba(120,235,255,.3);
+    background:rgba(8,20,40,.55);color:#a9d7ee;font-size:12.5px;letter-spacing:.04em;cursor:pointer;
+    transition:all .15s;backdrop-filter:blur(4px)}
+  .tilt-chip.on{border-color:#22e2ff;color:#dff6ff;background:rgba(34,226,255,.18);
+    box-shadow:0 0 16px rgba(34,226,255,.35)}
   .challenge-bar{display:flex;align-items:center;gap:10px;justify-content:center;flex-wrap:wrap;
     margin:18px auto 0;padding:8px 16px;max-width:560px;border-radius:999px;
     border:1px solid rgba(255,210,63,.45);background:rgba(46,32,0,.42);
@@ -124,15 +130,34 @@
     text-shadow:0 0 40px #22e2ff,0 0 110px #ff2d78}
   #countdown.pop{animation:cdpop .5s cubic-bezier(.2,.9,.3,1)}
   @keyframes cdpop{0%{transform:scale(1.75);opacity:0}35%{opacity:1;transform:scale(1.02)}100%{transform:scale(.96);opacity:1}}
-  #paused{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:16;
-    background:rgba(3,1,10,.62);font-size:clamp(28px,4vw,44px);font-weight:900;letter-spacing:.2em;color:#8ff6ff;
-    text-shadow:0 0 26px rgba(34,226,255,.8)}
-  #paused span{font-size:13px;letter-spacing:.24em;color:#9fb6d8;margin-top:16px;font-weight:600;text-shadow:none}
+  #paused{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:16;
+    background:rgba(3,1,10,.66);padding:20px}
+  .pause-panel{display:flex;flex-direction:column;align-items:center;gap:16px;
+    padding:26px 36px 24px;border-radius:20px;border:1px solid rgba(120,235,255,.28);
+    background:rgba(9,6,22,.86);box-shadow:0 0 50px rgba(34,226,255,.18),inset 0 0 60px rgba(120,0,255,.12);
+    max-width:90vw}
+  .pause-title{font-size:clamp(24px,3.6vw,36px);font-weight:900;letter-spacing:.22em;color:#8ff6ff;
+    text-shadow:0 0 22px rgba(34,226,255,.75)}
+  .pause-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .pause-actions .btn{margin-top:0;padding:13px 34px;font-size:16px}
+  .paused-hint{font-size:12px;letter-spacing:.14em;color:#7fa9c9;text-align:center}
+  @media (max-width:540px){
+    .pause-panel{padding:22px 22px 20px;gap:14px}
+    .pause-actions{flex-direction:column;width:100%}
+    .pause-actions .btn{width:100%;padding:13px 10px}
+  }
 
   /* ---------- 触屏 ---------- */
   #touch{position:absolute;left:0;right:0;bottom:0;display:none;justify-content:space-between;align-items:flex-end;
     padding:12px 16px calc(14px + env(safe-area-inset-bottom));z-index:12;pointer-events:none}
   #touch .grp{display:flex;gap:10px;pointer-events:auto;align-items:flex-end}
+  #touch .tilt-grp{display:none}
+  #touch.tilt-mode .steer-grp{display:none}
+  #touch.tilt-mode .tilt-grp{display:flex}
+  #touch.tilt-mode .orig-drift,
+  #touch.tilt-mode .orig-nitro{display:none}
+  #touch.tilt-mode button{width:66px;height:66px}
+  #touch.tilt-mode button.gas{width:76px;height:76px}
   #touch button{width:62px;height:62px;border-radius:50%;border:1px solid rgba(120,235,255,.38);
     background:rgba(6,20,40,.5);color:#bdf3ff;font-size:12px;font-weight:800;line-height:1.1;
     backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;touch-action:none}
@@ -150,8 +175,12 @@
     .track-card .tc-meta{font-size:9.5px;letter-spacing:0}
     #touch button{width:50px;height:50px;font-size:11px}
     #touch button.gas{width:56px;height:56px}
-    #touch .grp{flex-wrap:wrap;gap:8px;max-width:116px}
-    #touch .grp.right{justify-content:flex-end}
+    #touch .grp{flex-wrap:wrap;gap:8px;max-width:124px}
+    #touch .main-grp{justify-content:flex-end}
+    #touch.tilt-mode button{width:54px;height:54px}
+    #touch.tilt-mode button.gas{width:62px;height:62px}
+    #touch.tilt-mode .grp{max-width:124px}
+    #touch.tilt-mode .tilt-grp{justify-content:flex-start}
     .nitrobox,.scorebox{bottom:calc(148px + env(safe-area-inset-bottom))}
   }
   @media (pointer:coarse) and (max-height:520px){
@@ -159,6 +188,8 @@
     .keys b{min-width:70px;padding:2px 5px;font-size:10px}
   }
   @media (max-height:480px){
+    .tilt-row{margin-top:8px}
+    .tilt-chip{font-size:11px;padding:5px 10px}
     .logo{font-size:clamp(30px,6vw,50px)}
     .tag{font-size:10px;margin-top:4px;letter-spacing:.28em}
     .challenge-bar{margin-top:8px;padding:5px 12px;font-size:11px}
@@ -215,7 +246,20 @@
   </div>
 
   <div id="countdown" class="hidden">3</div>
-  <div id="paused" class="hidden">已暂停<span>按 P 继续</span></div>
+  <div id="paused" class="hidden">
+    <div class="pause-panel">
+      <div class="pause-title">已暂停</div>
+      <div class="pause-actions">
+        <button id="resumeBtn" class="btn">继续比赛</button>
+        <button id="pauseMenuBtn" class="btn ghost">返回主菜单</button>
+      </div>
+      <div class="tilt-row" id="pauseTiltRow">
+        <button id="pauseTiltToggle" class="tilt-chip">📱 重力转向：关</button>
+        <button id="pauseTiltInvert" class="tilt-chip hidden">反向：关</button>
+      </div>
+      <div class="paused-hint">点「继续比赛」或按 P 继续</div>
+    </div>
+  </div>
 
   <div id="overlay" class="overlay">
     <div class="screen" id="screenTitle">
@@ -234,6 +278,10 @@
         <div><b>空格</b>漂移（蓄氮气）</div>
         <div><b>SHIFT</b>氮气加速</div>
         <div><b>P / M</b>暂停 / 静音</div>
+      </div>
+      <div class="tilt-row hidden" id="tiltRow">
+        <button id="tiltToggle" class="tilt-chip">📱 重力转向：关</button>
+        <button id="tiltInvert" class="tilt-chip hidden">反向：关</button>
       </div>
       <button id="startBtn" class="btn">开始比赛</button>
       <div class="sub" id="bestLine">尚无记录 · 冲击榜首</div>
@@ -265,14 +313,18 @@
   <div id="toast" class="toast hidden">已复制</div>
 
   <div id="touch">
-    <div class="grp">
+    <div class="grp steer-grp">
       <button data-k="left">◀</button>
       <button data-k="right">▶</button>
     </div>
-    <div class="grp">
-      <button data-k="brake">刹车</button>
+    <div class="grp tilt-grp">
       <button data-k="drift">漂移</button>
       <button data-k="nitro" class="nitro">氮气</button>
+    </div>
+    <div class="grp main-grp">
+      <button data-k="brake">刹车</button>
+      <button data-k="drift" class="orig-drift">漂移</button>
+      <button data-k="nitro" class="nitro orig-nitro">氮气</button>
       <button data-k="gas" class="gas">油门</button>
     </div>
   </div>
@@ -366,6 +418,7 @@ function resize() {
   if (canvas.style) { canvas.style.width = width + 'px'; canvas.style.height = height + 'px'; }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   updateMedia();
+  updateTiltUI();
 }
 window.addEventListener('resize', resize);
 if (window.addEventListener) {
@@ -383,6 +436,10 @@ var ui = {
   startBtn: $('startBtn'), challengeBar: $('challengeBar'), challengeText: $('challengeText'),
   challengeClear: $('challengeClear'), challengeResult: $('challengeResult'),
   challengeBtn: $('challengeBtn'), toast: $('toast'),
+  resumeBtn: $('resumeBtn'), pauseMenuBtn: $('pauseMenuBtn'),
+  touch: $('touch'),
+  tiltRow: $('tiltRow'), tiltToggle: $('tiltToggle'), tiltInvert: $('tiltInvert'),
+  pauseTiltRow: $('pauseTiltRow'), pauseTiltToggle: $('pauseTiltToggle'), pauseTiltInvert: $('pauseTiltInvert'),
   muteBtn: $('muteBtn'), pauseBtn: $('pauseBtn'), menuBtn: $('menuBtn')
 };
 var marks = [];
@@ -1062,6 +1119,17 @@ if ($('startBtn')) $('startBtn').addEventListener('click', function () { startRa
 if ($('againBtn')) $('againBtn').addEventListener('click', function () { startRace(); });
 if (ui.menuBtn) ui.menuBtn.addEventListener('click', function () { returnToMenu(); });
 if (ui.challengeBtn) ui.challengeBtn.addEventListener('click', function () { copyChallengeUrl(); });
+if (ui.tiltToggle) ui.tiltToggle.addEventListener('click', function () { toggleTilt(); });
+if (ui.pauseTiltToggle) ui.pauseTiltToggle.addEventListener('click', function () { toggleTilt(); });
+function flipTiltInvert() { tiltInvert = !tiltInvert; updateTiltUI(); }
+if (ui.tiltInvert) ui.tiltInvert.addEventListener('click', flipTiltInvert);
+if (ui.pauseTiltInvert) ui.pauseTiltInvert.addEventListener('click', flipTiltInvert);
+window.addEventListener('orientationchange', function () {
+  tiltNeutral = null;
+  setTimeout(function () { tiltNeutral = null; }, 400);
+});
+if (ui.resumeBtn) ui.resumeBtn.addEventListener('click', function () { if (G.state === 'paused') togglePause(); });
+if (ui.pauseMenuBtn) ui.pauseMenuBtn.addEventListener('click', function () { if (G.state === 'paused') returnToMenu(); });
 if (ui.challengeClear) ui.challengeClear.addEventListener('click', function () { clearChallenge(); writeCleanUrl(); });
 if (ui.pauseBtn) ui.pauseBtn.addEventListener('click', function () { togglePause(); });
 if (ui.muteBtn) ui.muteBtn.addEventListener('click', function () { toggleMute(); });
@@ -1291,6 +1359,110 @@ function selectTrack(i) {
 }
 
 /* =========================================================
+   重力感应转向（手机倾斜控制方向）
+   ========================================================= */
+var tiltEnabled = false;
+var tiltInvert = false;
+var tiltNeutral = null;
+var tiltValue = 0;
+var tiltLastEvent = 0;
+
+function tiltSupported() {
+  return typeof window !== 'undefined' && 'DeviceOrientationEvent' in window;
+}
+
+function updateTiltUI() {
+  var show = tiltSupported() && IS_COARSE;
+  if (ui.touch) ui.touch.classList.toggle('tilt-mode', tiltEnabled);
+  var rows = [ui.tiltRow, ui.pauseTiltRow];
+  for (var r = 0; r < rows.length; r++) {
+    if (!rows[r]) continue;
+    if (show) rows[r].classList.remove('hidden');
+    else rows[r].classList.add('hidden');
+  }
+  var toggles = [ui.tiltToggle, ui.pauseTiltToggle];
+  for (var i = 0; i < toggles.length; i++) {
+    if (!toggles[i]) continue;
+    toggles[i].textContent = tiltEnabled ? '📱 重力转向：开' : '📱 重力转向：关';
+    toggles[i].classList.toggle('on', tiltEnabled);
+  }
+  var inverts = [ui.tiltInvert, ui.pauseTiltInvert];
+  for (var j = 0; j < inverts.length; j++) {
+    if (!inverts[j]) continue;
+    if (tiltEnabled) inverts[j].classList.remove('hidden');
+    else inverts[j].classList.add('hidden');
+    inverts[j].textContent = tiltInvert ? '反向：开' : '反向：关';
+    inverts[j].classList.toggle('on', tiltInvert);
+  }
+}
+
+function resetTouchKeys() {
+  G.keys.left = G.keys.right = G.keys.gas = G.keys.brake = G.keys.drift = G.keys.nitro = false;
+}
+
+function enableTilt() {
+  resetTouchKeys();
+  tiltEnabled = true;
+  tiltNeutral = null;
+  tiltValue = 0;
+  tiltLastEvent = Date.now();
+  window.addEventListener('deviceorientation', onDeviceOrientation);
+  updateTiltUI();
+  showToast('重力转向已开启：横屏后左右倾斜手机');
+  setTimeout(function () {
+    if (tiltEnabled && tiltNeutral === null) {
+      showToast('没收到方向数据：请检查浏览器的「动作与方向」权限');
+    }
+  }, 1800);
+}
+
+function disableTilt() {
+  resetTouchKeys();
+  tiltEnabled = false;
+  tiltValue = 0;
+  try { window.removeEventListener('deviceorientation', onDeviceOrientation); } catch (e) { }
+  updateTiltUI();
+}
+
+function toggleTilt() {
+  if (tiltEnabled) { disableTilt(); return; }
+  var DOE = window.DeviceOrientationEvent;
+  if (!DOE) { showToast('当前浏览器不支持重力感应'); return; }
+  if (typeof DOE.requestPermission === 'function') {
+    DOE.requestPermission().then(function (state) {
+      if (state === 'granted') enableTilt();
+      else showToast('未获得方向权限，请在浏览器设置中允许「动作与方向」');
+    }, function () { showToast('无法获取方向权限'); });
+  } else {
+    enableTilt();
+  }
+}
+
+function onDeviceOrientation(e) {
+  if (!tiltEnabled) return;
+  var beta = e.beta, gamma = e.gamma;
+  if (beta == null || gamma == null) return;
+  var ang = 0;
+  try {
+    if (window.screen && screen.orientation && typeof screen.orientation.angle === 'number') ang = screen.orientation.angle;
+    else if (typeof window.orientation === 'number') ang = window.orientation;
+  } catch (err) { }
+  ang = ((ang % 360) + 360) % 360;
+  var raw;
+  if (ang === 0) raw = gamma;
+  else if (ang === 180) raw = -gamma;
+  else if (ang === 90) raw = beta;
+  else raw = -beta;
+  if (tiltNeutral === null) { tiltNeutral = raw; return; }
+  var v = (raw - tiltNeutral) / 22;
+  if (Math.abs(v) < 0.05) v = 0;
+  else v = (v - (v > 0 ? 0.05 : -0.05)) / 0.95;
+  v = clamp(v, -1, 1);
+  tiltValue = tiltInvert ? -v : v;
+  tiltLastEvent = Date.now();
+}
+
+/* =========================================================
    好友挑战（链接）
    ========================================================= */
 function parseChallengeFromUrl() {
@@ -1410,6 +1582,10 @@ function updateRace(dt) {
   G.elapsed += dt;
 
   var steerTarget = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+  if (tiltEnabled) {
+    if (Date.now() - tiltLastEvent > 600) tiltValue *= 0.85;
+    if (Math.abs(tiltValue) > Math.abs(steerTarget)) steerTarget = tiltValue;
+  }
   G.steer += (steerTarget - G.steer) * Math.min(1, dt * 9);
 
   var seg = findSegment(G.position + PLAYER_Z);
@@ -2075,6 +2251,7 @@ buildTrackCards();
 resetRace();
 updateTrackUI();
 updateChallengeUI();
+updateTiltUI();
 G.state = 'title';
 showOverlay('screenTitle');
 last = 0;
@@ -2095,6 +2272,7 @@ window.__NEON__ = {
   get raceIsChallenge() { return raceIsChallenge; },
   challengeUrl: encodeChallengeUrl,
   clearChallenge: clearChallenge,
+  get tilt() { return { enabled: tiltEnabled, invert: tiltInvert, value: tiltValue, neutral: tiltNeutral }; },
   get track() { return TRACKS[TRACK_INDEX]; },
   get tracks() { return TRACKS; },
   get raceDistance() { return RACE_DISTANCE; },
