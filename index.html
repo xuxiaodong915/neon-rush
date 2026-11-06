@@ -65,6 +65,22 @@
     text-shadow:0 0 26px rgba(255,45,120,.55),0 0 70px rgba(34,226,255,.35)}
   .logo span{display:block;font-size:.58em;letter-spacing:.34em;margin-top:.12em;margin-left:.2em}
   .tag{margin-top:14px;font-size:clamp(13px,1.6vw,17px);letter-spacing:.42em;color:#c6a8ff;padding-left:.42em}
+  .challenge-bar{display:flex;align-items:center;gap:10px;justify-content:center;flex-wrap:wrap;
+    margin:18px auto 0;padding:8px 16px;max-width:560px;border-radius:999px;
+    border:1px solid rgba(255,210,63,.45);background:rgba(46,32,0,.42);
+    box-shadow:0 0 20px rgba(255,180,0,.22);font-size:13px;color:#ffe9a8}
+  .challenge-bar .cb-tag{font-size:10px;letter-spacing:.16em;padding:2px 9px;border-radius:999px;
+    background:rgba(255,210,63,.18);border:1px solid rgba(255,210,63,.55);color:#ffd23f;font-weight:800}
+  .challenge-bar .cb-x{background:none;border:0;color:#9fb6d8;font-size:12px;cursor:pointer;text-decoration:underline;padding:0 2px}
+  .challenge-result{margin:16px auto 0;max-width:420px;padding:10px 14px;border-radius:12px;
+    border:1px solid rgba(34,226,255,.28);background:rgba(10,30,60,.45);font-size:13.5px;line-height:1.6;color:#dff6ff}
+  .challenge-result b{color:#ffd23f}
+  .challenge-result.hidden{display:none}
+  .toast{position:absolute;left:50%;bottom:12%;transform:translateX(-50%);z-index:30;padding:10px 18px;
+    border-radius:999px;background:rgba(8,20,40,.94);border:1px solid rgba(34,226,255,.5);color:#dff6ff;
+    font-size:13px;line-height:1.5;text-align:center;max-width:86vw;box-shadow:0 0 24px rgba(34,226,255,.35)}
+  .toast.hidden{display:none}
+  .btn-row .btn{padding:14px 38px;font-size:16px}
   .track-pick{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:24px auto 0;max-width:680px}
   .track-card{display:flex;flex-direction:column;gap:3px;align-items:flex-start;min-width:158px;
     padding:10px 16px;border-radius:13px;border:1px solid rgba(120,235,255,.24);
@@ -145,6 +161,7 @@
   @media (max-height:480px){
     .logo{font-size:clamp(30px,6vw,50px)}
     .tag{font-size:10px;margin-top:4px;letter-spacing:.28em}
+    .challenge-bar{margin-top:8px;padding:5px 12px;font-size:11px}
     .track-pick{margin-top:10px;gap:8px}
     .track-card{padding:6px 12px;min-width:120px}
     .track-card .tc-name{font-size:12px}
@@ -204,6 +221,11 @@
     <div class="screen" id="screenTitle">
       <div class="logo">NEON<span>RUSH</span></div>
       <div class="tag">霓虹狂飙 · 街机竞速</div>
+      <div class="challenge-bar hidden" id="challengeBar">
+        <span class="cb-tag">好友挑战</span>
+        <span id="challengeText">—</span>
+        <button id="challengeClear" class="cb-x">忽略</button>
+      </div>
       <div class="track-pick" id="trackPick"></div>
       <div class="keys">
         <div><b>↑ / W</b>油门</div>
@@ -229,14 +251,18 @@
           <span>最高时速</span><span id="resSpeed">0 km/h</span>
           <span>最佳记录</span><span id="resBest">—</span>
         </div>
+        <div id="challengeResult" class="challenge-result hidden">—</div>
         <div class="btn-row">
           <button id="againBtn" class="btn">再来一局</button>
+          <button id="challengeBtn" class="btn ghost">挑战好友</button>
           <button id="menuBtn" class="btn ghost">返回主菜单</button>
         </div>
         <div class="sub">按 R 快速重开 · 按 Esc 返回主菜单</div>
       </div>
     </div>
   </div>
+
+  <div id="toast" class="toast hidden">已复制</div>
 
   <div id="touch">
     <div class="grp">
@@ -263,6 +289,20 @@ var TAU = Math.PI * 2;
 function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
 function lerp(a, b, t) { return a + (b - a) * t; }
 function rand(a, b) { return a + Math.random() * (b - a); }
+
+/* 可复现随机数：用于按 seed 生成同一条赛道（挑战链接） */
+var srandom = Math.random;
+function seedRandom(seed) {
+  var a = seed >>> 0;
+  srandom = function () {
+    a = (a + 0x6D2B79F5) | 0;
+    var t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function srand(a, b) { return a + srandom() * (b - a); }
+function randomSeed() { return Math.floor(Math.random() * 2147483647); }
 function easeIn(a, b, p) { return a + (b - a) * p * p; }
 function easeOut(a, b, p) { return a + (b - a) * (1 - (1 - p) * (1 - p)); }
 function easeInOut(a, b, p) { return a + (b - a) * (-Math.cos(p * Math.PI) / 2 + 0.5); }
@@ -340,6 +380,9 @@ var ui = {
   resRank: $('resRank'), resTime: $('resTime'), resScore: $('resScore'),
   resSpeed: $('resSpeed'), resBest: $('resBest'), bestLine: $('bestLine'),
   resTrack: $('resTrack'), trackLine: $('trackLine'), trackPick: $('trackPick'),
+  startBtn: $('startBtn'), challengeBar: $('challengeBar'), challengeText: $('challengeText'),
+  challengeClear: $('challengeClear'), challengeResult: $('challengeResult'),
+  challengeBtn: $('challengeBtn'), toast: $('toast'),
   muteBtn: $('muteBtn'), pauseBtn: $('pauseBtn'), menuBtn: $('menuBtn')
 };
 var marks = [];
@@ -396,6 +439,9 @@ var TRACKS = [
   }
 ];
 var TRACK_INDEX = 0;
+var raceSeed = randomSeed();
+var raceIsChallenge = false;
+var challenge = null;   /* { seed, trackIndex, time } */
 
 var COLORS = {
   LIGHT: { road: '#2d2d42', grass: '#130b29', rumble: '#ff2d78', lane: '#eaf6ff' },
@@ -768,33 +814,33 @@ function buildTrack(track) {
   while (guard++ < 1200) {
     /* 距离终点留出直道缓冲，保证终点线 + 冲线后的可视距离 */
     if (track.segments - segments.length < 420) break;
-    var r = Math.random();
-    var dir = Math.random() < 0.5 ? -1 : 1;
+    var r = srandom();
+    var dir = srandom() < 0.5 ? -1 : 1;
     var cy = segments.length ? segments[segments.length - 1].p2.world.y : 0;
-    var yDir = cy > 620 ? -1 : (cy < -620 ? 1 : (Math.random() < 0.5 ? 1 : -1));
+    var yDir = cy > 620 ? -1 : (cy < -620 ? 1 : (srandom() < 0.5 ? 1 : -1));
     if (style === 'pass') {
       /* 盘山公路：连续急弯 + 明显上下坡 */
       if (r < 0.16) {
         /* 连续 S 弯 */
-        addRoad(13, 15, 13, dir * rand(3.2, 4.2), yDir * rand(20, 60));
-        addRoad(13, 15, 13, -dir * rand(3.2, 4.2), yDir * rand(20, 60));
-      } else if (r < 0.46) addRoad(15, 18, 15, dir * rand(2.8, 3.8), yDir * rand(40, 110));
-      else if (r < 0.70) addRoad(18, 22, 18, dir * rand(3.8, 4.8), yDir * rand(30, 80));
-      else if (r < 0.86) addRoad(26, 30, 26, dir * rand(0.8, 1.6), yDir * rand(90, 150));
-      else addRoad(22, 28, 22, 0, rand(-40, 40));
+        addRoad(13, 15, 13, dir * srand(3.2, 4.2), yDir * srand(20, 60));
+        addRoad(13, 15, 13, -dir * srand(3.2, 4.2), yDir * srand(20, 60));
+      } else if (r < 0.46) addRoad(15, 18, 15, dir * srand(2.8, 3.8), yDir * srand(40, 110));
+      else if (r < 0.70) addRoad(18, 22, 18, dir * srand(3.8, 4.8), yDir * srand(30, 80));
+      else if (r < 0.86) addRoad(26, 30, 26, dir * srand(0.8, 1.6), yDir * srand(90, 150));
+      else addRoad(22, 28, 22, 0, srand(-40, 40));
     } else if (style === 'coast') {
       /* 滨海高速：长直道 + 高速弯 + 少量急弯 + 缓坡 */
-      if (r < 0.36) addRoad(70, 90, 70, dir * rand(0.5, 1.4), yDir * rand(10, 40));
-      else if (r < 0.58) addRoad(90, 120, 90, 0, rand(-20, 20));
-      else if (r < 0.74) addRoad(34, 44, 34, dir * rand(1.6, 2.4), 0);
-      else if (r < 0.88) addRoad(26, 34, 26, dir * rand(2.6, 3.3), 0);
-      else addRoad(60, 70, 60, 0, yDir * rand(40, 80));
+      if (r < 0.36) addRoad(70, 90, 70, dir * srand(0.5, 1.4), yDir * srand(10, 40));
+      else if (r < 0.58) addRoad(90, 120, 90, 0, srand(-20, 20));
+      else if (r < 0.74) addRoad(34, 44, 34, dir * srand(1.6, 2.4), 0);
+      else if (r < 0.88) addRoad(26, 34, 26, dir * srand(2.6, 3.3), 0);
+      else addRoad(60, 70, 60, 0, yDir * srand(40, 80));
     } else {
       /* 霓虹都市：综合弯道 */
-      if (r < 0.30) addRoad(30, 40, 30, dir * rand(1.5, 2.6), rand(-40, 40));
-      else if (r < 0.55) addRoad(40, 50, 40, dir * rand(2.6, 3.4), 0);
-      else if (r < 0.80) addRoad(25, 30, 25, dir * rand(0.8, 1.6), 0);
-      else addRoad(50, 60, 50, 0, rand(-90, 90));
+      if (r < 0.30) addRoad(30, 40, 30, dir * srand(1.5, 2.6), srand(-40, 40));
+      else if (r < 0.55) addRoad(40, 50, 40, dir * srand(2.6, 3.4), 0);
+      else if (r < 0.80) addRoad(25, 30, 25, dir * srand(0.8, 1.6), 0);
+      else addRoad(50, 60, 50, 0, srand(-90, 90));
     }
   }
   /* 终点前直道 + 冲线后缓冲区 */
@@ -815,15 +861,15 @@ function decorateTrack(track) {
   for (i = 6; i < segments.length; i++) {
     seg = segments[i];
     if (i % treeEvery === 0) {
-      if (Math.random() < treeProb) seg.sprites.push({ img: treeImg, offset: -(1.55 + Math.random() * treeSpread), w: 1450 + Math.random() * 950 });
-      if (Math.random() < treeProb) seg.sprites.push({ img: treeImg, offset: (1.55 + Math.random() * treeSpread), w: 1450 + Math.random() * 950 });
+      if (srandom() < treeProb) seg.sprites.push({ img: treeImg, offset: -(1.55 + srandom() * treeSpread), w: 1450 + srandom() * 950 });
+      if (srandom() < treeProb) seg.sprites.push({ img: treeImg, offset: (1.55 + srandom() * treeSpread), w: 1450 + srandom() * 950 });
     }
     if (i % poleEvery === 0) {
       side = (i % (poleEvery * 2) === 0) ? -1 : 1;
       seg.sprites.push({ img: poleImg, offset: side * 1.2, w: 950 });
     }
     if (billEvery && i % billEvery === 0) {
-      seg.sprites.push({ img: billboardImg, offset: (Math.random() < 0.5 ? -1 : 1) * 1.75, w: 2500 });
+      seg.sprites.push({ img: billboardImg, offset: (srandom() < 0.5 ? -1 : 1) * 1.75, w: 2500 });
     }
   }
 }
@@ -873,7 +919,7 @@ function mkWrapRival(spec, i) {
     offset: spec.offset,
     dist: 0,
     speed: 0,
-    phase: i * 2.1 + Math.random() * 0.8,
+    phase: i * 2.1 + srandom() * 0.8,
     finished: false,
     finishTime: 0,
     img: rivalImgs[spec.color],
@@ -888,6 +934,7 @@ function resetRace() {
   COLORS.LIGHT.grass = track.grassLight;
   COLORS.DARK.grass = track.grassDark;
   FOG_COLOR = track.fog;
+  seedRandom(raceSeed);
   buildTrack(track);
   G.position = 0;
   G.speed = 0;
@@ -1014,13 +1061,25 @@ document.addEventListener('visibilitychange', function () {
 if ($('startBtn')) $('startBtn').addEventListener('click', function () { startRace(); });
 if ($('againBtn')) $('againBtn').addEventListener('click', function () { startRace(); });
 if (ui.menuBtn) ui.menuBtn.addEventListener('click', function () { returnToMenu(); });
+if (ui.challengeBtn) ui.challengeBtn.addEventListener('click', function () { copyChallengeUrl(); });
+if (ui.challengeClear) ui.challengeClear.addEventListener('click', function () { clearChallenge(); writeCleanUrl(); });
 if (ui.pauseBtn) ui.pauseBtn.addEventListener('click', function () { togglePause(); });
 if (ui.muteBtn) ui.muteBtn.addEventListener('click', function () { toggleMute(); });
 
 /* =========================================================
    流程
    ========================================================= */
-function startRace() {
+function startRace(seedOverride) {
+  if (typeof seedOverride === 'number' && isFinite(seedOverride)) {
+    raceSeed = seedOverride >>> 0;
+    raceIsChallenge = false;
+  } else if (challenge) {
+    raceIsChallenge = true;
+    raceSeed = challenge.seed >>> 0;
+  } else {
+    raceIsChallenge = false;
+    raceSeed = randomSeed();
+  }
   Sound.init();
   resetRace();
   hideOverlay();
@@ -1084,6 +1143,21 @@ function showResult(rank) {
   } else {
     ui.resBest.textContent = fmtTime(best);
   }
+  if (raceIsChallenge && challenge) {
+    var diff = G.finishTime - challenge.time;
+    var html;
+    if (diff <= 0) {
+      html = '🎉 挑战成功！你 <b>' + fmtTime(G.finishTime) + '</b> · 好友 <b>' + fmtTime(challenge.time) +
+        '</b>，快 ' + Math.abs(diff).toFixed(2) + ' 秒';
+    } else {
+      html = '差一点！你 <b>' + fmtTime(G.finishTime) + '</b> · 好友 <b>' + fmtTime(challenge.time) +
+        '</b>，慢 ' + diff.toFixed(2) + ' 秒';
+    }
+    ui.challengeResult.innerHTML = html;
+    ui.challengeResult.classList.remove('hidden');
+  } else if (ui.challengeResult) {
+    ui.challengeResult.classList.add('hidden');
+  }
   refreshBestLine();
   showOverlay('screenResult');
 }
@@ -1098,6 +1172,7 @@ function returnToMenu() {
   ui.countdown.textContent = '3';
   ui.paused.classList.add('hidden');
   refreshBestLine();
+  updateChallengeUI();
   showOverlay('screenTitle');
   if (Sound.ac && Sound.ac.suspend) { try { Sound.ac.suspend(); } catch (e) { } }
 }
@@ -1204,10 +1279,104 @@ function updateTrackUI() {
 
 function selectTrack(i) {
   if (i < 0 || i >= TRACKS.length || i === TRACK_INDEX) return;
+  if (challenge && i !== challenge.trackIndex) clearChallenge();
   TRACK_INDEX = i;
   try { localStorage.setItem('neonrush.track', TRACKS[i].id); } catch (e) { }
-  if (G.state === 'title') resetRace();
+  if (G.state === 'title') {
+    raceSeed = randomSeed();
+    resetRace();
+  }
   updateTrackUI();
+  updateChallengeUI();
+}
+
+/* =========================================================
+   好友挑战（链接）
+   ========================================================= */
+function parseChallengeFromUrl() {
+  try {
+    if (!window.location || !window.location.search) return null;
+    var q = new URLSearchParams(window.location.search);
+    var seed = parseInt(q.get('seed'), 10);
+    var pt = parseFloat(q.get('pt'));
+    if (!isFinite(seed) || !isFinite(pt) || pt <= 0) return null;
+    var tid = q.get('track');
+    var ti = 0;
+    for (var i = 0; i < TRACKS.length; i++) if (TRACKS[i].id === tid) ti = i;
+    return { seed: seed >>> 0, trackIndex: ti, time: pt };
+  } catch (e) { return null; }
+}
+
+function updateChallengeUI() {
+  if (ui.challengeBar) {
+    if (challenge) {
+      ui.challengeBar.classList.remove('hidden');
+      ui.challengeText.textContent = TRACKS[challenge.trackIndex].name + ' · 好友 ' + fmtTime(challenge.time);
+      if (ui.startBtn) ui.startBtn.textContent = '接受挑战';
+    } else {
+      ui.challengeBar.classList.add('hidden');
+      if (ui.startBtn) ui.startBtn.textContent = '开始比赛';
+    }
+  }
+}
+
+function clearChallenge() {
+  challenge = null;
+  raceIsChallenge = false;
+  updateChallengeUI();
+}
+
+function writeCleanUrl() {
+  try {
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  } catch (e) { }
+}
+
+function encodeChallengeUrl() {
+  var t = TRACKS[TRACK_INDEX];
+  var base = '';
+  try { base = window.location.origin + window.location.pathname; } catch (e) { base = ''; }
+  return base + '?track=' + t.id + '&seed=' + (raceSeed >>> 0) + '&pt=' + G.finishTime.toFixed(2);
+}
+
+function copyChallengeUrl() {
+  var url = encodeChallengeUrl();
+  var ok = function () { showToast('挑战链接已复制，去微信发给好友吧'); };
+  var fail = function () { fallbackCopy(url); };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(ok, fail);
+    } else fail();
+  } catch (e) { fail(); }
+}
+
+function fallbackCopy(url) {
+  try {
+    var ta = document.createElement('textarea');
+    ta.value = url;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = document.execCommand && document.execCommand('copy');
+    if (document.body) document.body.removeChild(ta);
+    showToast(ok ? '挑战链接已复制，去微信发给好友吧' : '复制失败，请手动复制：' + url);
+  } catch (e) {
+    showToast('复制失败，请手动复制：' + url);
+  }
+}
+
+var toastTimer = null;
+function showToast(msg) {
+  if (!ui.toast) return;
+  ui.toast.textContent = msg;
+  ui.toast.classList.remove('hidden');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { ui.toast.classList.add('hidden'); }, 3600);
 }
 
 /* =========================================================
@@ -1898,11 +2067,14 @@ function loop(now) {
    ========================================================= */
 resize();
 makeSprites();
-TRACK_INDEX = loadTrackIndex();
+challenge = parseChallengeFromUrl();
+TRACK_INDEX = challenge ? challenge.trackIndex : loadTrackIndex();
+if (challenge) raceSeed = challenge.seed >>> 0;
 migrateBest();
 buildTrackCards();
 resetRace();
 updateTrackUI();
+updateChallengeUI();
 G.state = 'title';
 showOverlay('screenTitle');
 last = 0;
@@ -1918,6 +2090,11 @@ window.__NEON__ = {
   returnToMenu: returnToMenu,
   resetRace: resetRace,
   selectTrack: selectTrack,
+  get seed() { return raceSeed >>> 0; },
+  get challenge() { return challenge; },
+  get raceIsChallenge() { return raceIsChallenge; },
+  challengeUrl: encodeChallengeUrl,
+  clearChallenge: clearChallenge,
   get track() { return TRACKS[TRACK_INDEX]; },
   get tracks() { return TRACKS; },
   get raceDistance() { return RACE_DISTANCE; },
