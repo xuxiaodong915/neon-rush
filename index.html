@@ -4,6 +4,14 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <title>NEON RUSH · 霓虹狂飙</title>
+<meta name="theme-color" content="#05030f" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="NEON RUSH" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
 <style>
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%;overflow:hidden;background:#05030f;color:#dff6ff;
@@ -47,7 +55,7 @@
     text-shadow:0 0 16px #ff2d78,0 0 40px rgba(255,45,120,.6);transition:opacity .16s,transform .16s}
   #driftPop.on{opacity:1;transform:translate(-50%,0)}
 
-  .sysbtns{position:absolute;right:22px;top:calc(max(14px,env(safe-area-inset-top)) + clamp(46px,6vw,70px));display:flex;gap:8px;pointer-events:auto}
+  .sysbtns{position:absolute;right:22px;top:calc(max(14px,env(safe-area-inset-top)) + clamp(46px,6vw,70px));display:flex;gap:8px;pointer-events:auto;z-index:25}
   .sysbtns button{width:32px;height:32px;border-radius:9px;border:1px solid rgba(120,235,255,.28);background:rgba(8,20,40,.5);
     color:#bdf3ff;font-size:13px;font-weight:700;cursor:pointer;line-height:1;backdrop-filter:blur(4px)}
   .sysbtns button:active{background:rgba(34,226,255,.28)}
@@ -240,6 +248,7 @@
     <div id="driftPop">DRIFT +0</div>
 
     <div class="sysbtns">
+      <button id="fsBtn" title="全屏">⛶</button>
       <button id="pauseBtn" title="暂停 (P)">II</button>
       <button id="muteBtn" title="静音 (M)">♪</button>
     </div>
@@ -440,7 +449,7 @@ var ui = {
   touch: $('touch'),
   tiltRow: $('tiltRow'), tiltToggle: $('tiltToggle'), tiltInvert: $('tiltInvert'),
   pauseTiltRow: $('pauseTiltRow'), pauseTiltToggle: $('pauseTiltToggle'), pauseTiltInvert: $('pauseTiltInvert'),
-  muteBtn: $('muteBtn'), pauseBtn: $('pauseBtn'), menuBtn: $('menuBtn')
+  muteBtn: $('muteBtn'), pauseBtn: $('pauseBtn'), menuBtn: $('menuBtn'), fsBtn: $('fsBtn')
 };
 var marks = [];
 (function () {
@@ -1119,6 +1128,7 @@ if ($('startBtn')) $('startBtn').addEventListener('click', function () { startRa
 if ($('againBtn')) $('againBtn').addEventListener('click', function () { startRace(); });
 if (ui.menuBtn) ui.menuBtn.addEventListener('click', function () { returnToMenu(); });
 if (ui.challengeBtn) ui.challengeBtn.addEventListener('click', function () { copyChallengeUrl(); });
+if (ui.fsBtn) ui.fsBtn.addEventListener('click', function () { toggleFullscreen(); });
 if (ui.tiltToggle) ui.tiltToggle.addEventListener('click', function () { toggleTilt(); });
 if (ui.pauseTiltToggle) ui.pauseTiltToggle.addEventListener('click', function () { toggleTilt(); });
 function flipTiltInvert() { tiltInvert = !tiltInvert; updateTiltUI(); }
@@ -1357,6 +1367,69 @@ function selectTrack(i) {
   updateTrackUI();
   updateChallengeUI();
 }
+
+/* =========================================================
+   全屏 / 添加到主屏幕（隐藏浏览器工具栏）
+   ========================================================= */
+function fsElement() {
+  return document.fullscreenElement || document.webkitFullscreenElement || null;
+}
+function fsSupported() {
+  var el = document.documentElement;
+  return !!(el && (el.requestFullscreen || el.webkitRequestFullscreen));
+}
+function isIOS() {
+  return /iPhone|iPad|iPod/.test(navigator.userAgent || '');
+}
+function updateFsBtn() {
+  if (!ui.fsBtn) return;
+  var fs = !!fsElement();
+  ui.fsBtn.textContent = fs ? '⤡' : '⛶';
+  ui.fsBtn.title = fs ? '退出全屏' : '全屏';
+}
+function tryLockLandscape() {
+  try {
+    if (screen.orientation && screen.orientation.lock) {
+      var p = screen.orientation.lock('landscape');
+      if (p && p.catch) p.catch(function () { });
+    }
+  } catch (e) { }
+}
+function requestFullscreen() {
+  var el = document.documentElement;
+  var req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+  if (!req) {
+    if (isIOS()) {
+      showToast('Safari 不允许网页全屏：点「分享 → 添加到主屏幕」，从桌面图标打开即可无地址栏');
+    } else {
+      showToast('当前浏览器不支持网页全屏');
+    }
+    return;
+  }
+  try {
+    var p = req.call(el);
+    if (p && p.then) {
+      p.then(function () { tryLockLandscape(); }, function () { showToast('进入全屏被拒绝'); });
+    } else {
+      tryLockLandscape();
+    }
+  } catch (e) { showToast('进入全屏失败'); }
+}
+function exitFullscreen() {
+  var ex = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+  if (ex) { try { ex.call(document); } catch (e) { } }
+}
+function toggleFullscreen() {
+  if (fsElement()) exitFullscreen();
+  else requestFullscreen();
+}
+function onFullscreenChange() {
+  updateFsBtn();
+  setTimeout(function () { resize(); }, 200);
+  setTimeout(function () { resize(); }, 650);
+}
+document.addEventListener('fullscreenchange', onFullscreenChange);
+document.addEventListener('webkitfullscreenchange', onFullscreenChange);
 
 /* =========================================================
    重力感应转向（手机倾斜控制方向）
@@ -2252,6 +2325,8 @@ resetRace();
 updateTrackUI();
 updateChallengeUI();
 updateTiltUI();
+updateFsBtn();
+if (typeof navigator !== 'undefined' && navigator.standalone && ui.fsBtn) ui.fsBtn.classList.add('hidden');
 G.state = 'title';
 showOverlay('screenTitle');
 last = 0;
@@ -2273,6 +2348,9 @@ window.__NEON__ = {
   challengeUrl: encodeChallengeUrl,
   clearChallenge: clearChallenge,
   get tilt() { return { enabled: tiltEnabled, invert: tiltInvert, value: tiltValue, neutral: tiltNeutral }; },
+  toggleFullscreen: toggleFullscreen,
+  get fullscreen() { return !!fsElement(); },
+  get fsSupported() { return fsSupported(); },
   get track() { return TRACKS[TRACK_INDEX]; },
   get tracks() { return TRACKS; },
   get raceDistance() { return RACE_DISTANCE; },
