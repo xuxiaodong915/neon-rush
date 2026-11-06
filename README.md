@@ -34,6 +34,12 @@
 | --- | --- |
 | ![挑战](screenshots/13-challenge-title.png) | ![结果](screenshots/14-challenge-result.png) |
 
+## 全屏 / 去掉浏览器地址栏
+
+- 网页右上角「⛶」按钮：安卓 Chrome、桌面浏览器点一下即全屏（隐藏地址栏）；横屏时会尝试锁定横屏。
+- **iPhone Safari 不支持网页全屏**：点右上角「⛶」会提示做法 —— 用 Safari 的「分享 → 添加到主屏幕」，之后从桌面图标打开就是独立窗口（无地址栏），并且已配置横屏启动。
+- 已经带了 PWA manifest、图标、`apple-mobile-web-app-capable`，添加到主屏幕后体验接近原生 App。
+
 ## 操作
 
 | 按键 | 功能 |
