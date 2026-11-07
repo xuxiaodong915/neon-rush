@@ -34,7 +34,18 @@
 | --- | --- |
 | ![挑战](screenshots/13-challenge-title.png) | ![结果](screenshots/14-challenge-result.png) |
 
+![排行榜](screenshots/20-leaderboard.png)
+
+
+## 排行榜
+
+- 标题页「🏆 排行榜」查看当前赛道前 10 名；结算页「🏆 上传成绩」手动上传（填微信昵称，会记住上次的名字）
+- 上传成功后才拉取并刷新榜单，显示自己的名次（即使不在前 10 也会显示排名）；不轮询
+- 数据存在 Supabase（表 `scores`，RLS 允许公开读、只允许插入，不能改/删别人的记录）
+- 清空测试数据：在 Supabase SQL Editor 执行 `delete from public.scores;`
+
 ## 全屏 / 去掉浏览器地址栏
+
 
 - 网页右上角「⛶」按钮：安卓 Chrome、桌面浏览器点一下即全屏（隐藏地址栏）；横屏时会尝试锁定横屏。
 - **iPhone Safari 不支持网页全屏**：点右上角「⛶」会提示做法 —— 用 Safari 的「分享 → 添加到主屏幕」，之后从桌面图标打开就是独立窗口（无地址栏），并且已配置横屏启动。
