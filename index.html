@@ -79,6 +79,37 @@
     transition:all .15s;backdrop-filter:blur(4px)}
   .tilt-chip.on{border-color:#22e2ff;color:#dff6ff;background:rgba(34,226,255,.18);
     box-shadow:0 0 16px rgba(34,226,255,.35)}
+  .title-links{display:flex;justify-content:center;gap:8px;margin-top:12px}
+  .chip-btn{padding:7px 16px;border-radius:999px;border:1px solid rgba(255,210,63,.45);
+    background:rgba(46,32,0,.4);color:#ffe9a8;font-size:12.5px;letter-spacing:.06em;cursor:pointer;
+    transition:all .15s;backdrop-filter:blur(4px)}
+  .chip-btn:hover{border-color:#ffd23f;box-shadow:0 0 18px rgba(255,180,0,.35)}
+  .board-panel{min-width:min(92vw,460px)}
+  .board-title{font-size:clamp(26px,4vw,38px);font-weight:900;letter-spacing:.12em;color:#8ff6ff;
+    margin:4px 0 12px;text-shadow:0 0 22px rgba(34,226,255,.7)}
+  .board-tracks{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+  .board-tracks button{padding:5px 11px;border-radius:999px;border:1px solid rgba(120,235,255,.28);
+    background:rgba(8,20,40,.5);color:#9fd8ee;font-size:11.5px;cursor:pointer}
+  .board-tracks button.active{border-color:#22e2ff;color:#eafcff;background:rgba(34,226,255,.2)}
+  .board-list{max-height:min(50vh,384px);overflow:auto;width:100%;margin:0 auto;text-align:left}
+  .board-row{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:9px;font-size:13.5px}
+  .board-row:nth-child(odd){background:rgba(120,235,255,.05)}
+  .board-row.top1 .br-rank{color:#ffd23f}
+  .board-row.top2 .br-rank{color:#d9e6f2}
+  .board-row.top3 .br-rank{color:#ffa552}
+  .br-rank{width:26px;flex:0 0 26px;text-align:center;font-weight:900;color:#7fd8ff}
+  .br-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#eafcff}
+  .br-time{font-weight:800;color:#ffd23f;font-variant-numeric:tabular-nums}
+  .board-empty{text-align:center;color:#7fa9c9;font-size:13px;padding:18px 6px;line-height:1.6}
+  .board-me{margin:12px 0 4px;font-size:13px;color:#9fd8ee;min-height:18px}
+  .board-me b{color:#ffd23f}
+  .btn:disabled{opacity:.55;cursor:default;box-shadow:none}
+  .btn.uploaded{color:#9ff6c8;border-color:rgba(80,255,170,.5)}
+  .name-panel{min-width:min(90vw,420px)}
+  .name-hint{font-size:12.5px;color:#9fd8ee;margin-bottom:12px}
+  .name-input{width:100%;max-width:280px;padding:12px 14px;border-radius:10px;border:1px solid rgba(120,235,255,.4);
+    background:rgba(4,10,26,.8);color:#eafcff;font-size:16px;text-align:center;outline:none;margin:0 auto 6px}
+  .name-input:focus{border-color:#22e2ff;box-shadow:0 0 18px rgba(34,226,255,.35)}
   .challenge-bar{display:flex;align-items:center;gap:10px;justify-content:center;flex-wrap:wrap;
     margin:18px auto 0;padding:8px 16px;max-width:560px;border-radius:999px;
     border:1px solid rgba(255,210,63,.45);background:rgba(46,32,0,.42);
@@ -196,6 +227,8 @@
     .keys b{min-width:70px;padding:2px 5px;font-size:10px}
   }
   @media (max-height:480px){
+    .title-links{margin-top:8px}
+    .chip-btn{padding:5px 12px;font-size:11px}
     .tilt-row{margin-top:8px}
     .tilt-chip{font-size:11px;padding:5px 10px}
     .logo{font-size:clamp(30px,6vw,50px)}
@@ -293,8 +326,43 @@
         <button id="tiltInvert" class="tilt-chip hidden">反向：关</button>
       </div>
       <button id="startBtn" class="btn">开始比赛</button>
+      <div class="title-links">
+        <button id="boardBtn" class="chip-btn">🏆 排行榜</button>
+      </div>
       <div class="sub" id="bestLine">尚无记录 · 冲击榜首</div>
       <div class="sub" id="trackLine" style="margin-top:8px;opacity:.7">3 位对手 · 漂移充能氮气冲刺 · 建议横屏</div>
+    </div>
+
+    <div class="screen hidden" id="screenBoard">
+      <div class="panel board-panel">
+        <div class="label" style="letter-spacing:.32em">LEADERBOARD</div>
+        <div class="board-title">排行榜</div>
+        <div class="board-tracks" id="boardTracks">
+          <button data-track="0">霓虹都市</button>
+          <button data-track="1">盘山公路</button>
+          <button data-track="2">滨海高速</button>
+        </div>
+        <div class="board-list" id="boardList"></div>
+        <div class="board-me" id="boardMe"></div>
+        <div class="btn-row">
+          <button id="boardClose" class="btn ghost">关闭</button>
+        </div>
+        <div class="sub">只显示前 10 名 · 上传成绩后更新</div>
+      </div>
+    </div>
+
+    <div class="screen hidden" id="screenName">
+      <div class="panel name-panel">
+        <div class="label" style="letter-spacing:.32em">UPLOAD SCORE</div>
+        <div class="board-title">上传成绩</div>
+        <div class="name-hint">填写你的微信昵称，会显示在排行榜上</div>
+        <input id="nameInput" class="name-input" maxlength="12" placeholder="例如：小明" autocomplete="nickname" />
+        <div class="btn-row">
+          <button id="nameConfirm" class="btn">确定上传</button>
+          <button id="nameCancel" class="btn ghost">取消</button>
+        </div>
+        <div class="sub" id="nameTime">成绩：—</div>
+      </div>
     </div>
 
     <div class="screen hidden" id="screenResult">
@@ -311,6 +379,7 @@
         <div id="challengeResult" class="challenge-result hidden">—</div>
         <div class="btn-row">
           <button id="againBtn" class="btn">再来一局</button>
+          <button id="uploadBtn" class="btn ghost">🏆 上传成绩</button>
           <button id="challengeBtn" class="btn ghost">挑战好友</button>
           <button id="menuBtn" class="btn ghost">返回主菜单</button>
         </div>
@@ -449,7 +518,11 @@ var ui = {
   touch: $('touch'),
   tiltRow: $('tiltRow'), tiltToggle: $('tiltToggle'), tiltInvert: $('tiltInvert'),
   pauseTiltRow: $('pauseTiltRow'), pauseTiltToggle: $('pauseTiltToggle'), pauseTiltInvert: $('pauseTiltInvert'),
-  muteBtn: $('muteBtn'), pauseBtn: $('pauseBtn'), menuBtn: $('menuBtn'), fsBtn: $('fsBtn')
+  muteBtn: $('muteBtn'), pauseBtn: $('pauseBtn'), menuBtn: $('menuBtn'), fsBtn: $('fsBtn'),
+  boardBtn: $('boardBtn'), boardTracks: $('boardTracks'), boardList: $('boardList'),
+  boardMe: $('boardMe'), boardClose: $('boardClose'), screenBoard: $('screenBoard'),
+  screenName: $('screenName'), uploadBtn: $('uploadBtn'), nameInput: $('nameInput'),
+  nameConfirm: $('nameConfirm'), nameCancel: $('nameCancel'), nameTime: $('nameTime')
 };
 var marks = [];
 (function () {
@@ -506,6 +579,11 @@ var TRACKS = [
 ];
 var TRACK_INDEX = 0;
 var raceSeed = randomSeed();
+
+/* 排行榜后端（Supabase 公共 publishable key，配合 RLS 只允许读/插入） */
+var LB_URL = 'https://wnldgzcppogddvkkmgnp.supabase.co';
+var LB_KEY = 'sb_publishable_ZhZlXtnehUp6N7TMQjidDg_cyLEDwck';
+var LB_ENABLED = !!(LB_URL && LB_KEY && typeof fetch === 'function');
 var raceIsChallenge = false;
 var challenge = null;   /* { seed, trackIndex, time } */
 
@@ -1085,7 +1163,11 @@ window.addEventListener('keydown', function (e) {
   }
   if (e.code === 'KeyP' || e.code === 'Escape') {
     e.preventDefault();
-    if (e.code === 'Escape' && G.state === 'finish') { returnToMenu(); return; }
+    if (e.code === 'Escape') {
+      if (overlayScreen === 'screenBoard') { closeBoard(); return; }
+      if (overlayScreen === 'screenName') { showOverlay('screenResult'); return; }
+      if (G.state === 'finish') { returnToMenu(); return; }
+    }
     togglePause();
   }
   if (e.code === 'KeyM') { e.preventDefault(); toggleMute(); }
@@ -1129,6 +1211,22 @@ if ($('againBtn')) $('againBtn').addEventListener('click', function () { startRa
 if (ui.menuBtn) ui.menuBtn.addEventListener('click', function () { returnToMenu(); });
 if (ui.challengeBtn) ui.challengeBtn.addEventListener('click', function () { copyChallengeUrl(); });
 if (ui.fsBtn) ui.fsBtn.addEventListener('click', function () { toggleFullscreen(); });
+if (ui.boardBtn) ui.boardBtn.addEventListener('click', function () { openBoard('screenTitle'); });
+if (ui.boardClose) ui.boardClose.addEventListener('click', function () { closeBoard(); });
+if (ui.boardTracks) {
+  var btns = ui.boardTracks.querySelectorAll('button');
+  for (var bi = 0; bi < btns.length; bi++) {
+    (function (b) {
+      b.addEventListener('click', function () { selectBoardTrack(+b.getAttribute('data-track')); });
+    })(btns[bi]);
+  }
+}
+if (ui.uploadBtn) ui.uploadBtn.addEventListener('click', function () { openUpload(); });
+if (ui.nameConfirm) ui.nameConfirm.addEventListener('click', function () { confirmUpload(); });
+if (ui.nameCancel) ui.nameCancel.addEventListener('click', function () { showOverlay('screenResult'); });
+if (ui.nameInput) ui.nameInput.addEventListener('keydown', function (e) {
+  if (e.code === 'Enter' || e.key === 'Enter') { e.preventDefault(); confirmUpload(); }
+});
 if (ui.tiltToggle) ui.tiltToggle.addEventListener('click', function () { toggleTilt(); });
 if (ui.pauseTiltToggle) ui.pauseTiltToggle.addEventListener('click', function () { toggleTilt(); });
 function flipTiltInvert() { tiltInvert = !tiltInvert; updateTiltUI(); }
@@ -1158,6 +1256,7 @@ function startRace(seedOverride) {
     raceIsChallenge = false;
     raceSeed = randomSeed();
   }
+  uploadedThisRun = false;
   Sound.init();
   resetRace();
   hideOverlay();
@@ -1237,6 +1336,7 @@ function showResult(rank) {
     ui.challengeResult.classList.add('hidden');
   }
   refreshBestLine();
+  updateUploadBtn();
   showOverlay('screenResult');
 }
 
@@ -1271,10 +1371,16 @@ function toggleMute() {
   if (ui.muteBtn) ui.muteBtn.textContent = Sound.muted ? '✕' : '♪';
 }
 
+var overlayScreen = 'screenTitle';
 function showOverlay(id) {
+  overlayScreen = id;
   ui.overlay.classList.remove('hidden');
-  ui.screenTitle.classList.toggle('hidden', id !== 'screenTitle');
-  ui.screenResult.classList.toggle('hidden', id !== 'screenResult');
+  var screens = [ui.screenTitle, ui.screenResult, ui.screenBoard, ui.screenName];
+  for (var i = 0; i < screens.length; i++) {
+    if (!screens[i]) continue;
+    if (screens[i].id === id) screens[i].classList.remove('hidden');
+    else screens[i].classList.add('hidden');
+  }
 }
 function hideOverlay() {
   ui.overlay.classList.add('hidden');
@@ -1533,6 +1639,208 @@ function onDeviceOrientation(e) {
   v = clamp(v, -1, 1);
   tiltValue = tiltInvert ? -v : v;
   tiltLastEvent = Date.now();
+}
+
+/* =========================================================
+   排行榜（Supabase）
+   ========================================================= */
+var lbCache = {};
+var uploadInFlight = false;
+var uploadedThisRun = false;
+var boardTrack = 0;
+var boardReturn = 'screenTitle';
+
+function lbRequest(path, opts) {
+  opts = opts || {};
+  var headers = { 'apikey': LB_KEY, 'Authorization': 'Bearer ' + LB_KEY };
+  if (opts.body) headers['Content-Type'] = 'application/json';
+  if (opts.prefer) headers['Prefer'] = opts.prefer;
+  return fetch(LB_URL + '/rest/v1/' + path, {
+    method: opts.method || 'GET',
+    headers: headers,
+    body: opts.body
+  }).then(function (res) {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res;
+  });
+}
+
+function sanitizeName(n) {
+  var v = String(n == null ? '' : n).replace(/[\u0000-\u001f<>"'`]/g, '').trim().slice(0, 12);
+  return v || '匿名玩家';
+}
+function getLastName() {
+  try { return localStorage.getItem('neonrush.name') || ''; } catch (e) { return ''; }
+}
+function saveLastName(n) {
+  try { localStorage.setItem('neonrush.name', n); } catch (e) { }
+}
+function getTrackUpload(trackId) {
+  try {
+    var raw = localStorage.getItem('neonrush.upload.' + trackId);
+    if (!raw) return null;
+    var o = JSON.parse(raw);
+    if (!o || !o.name || !isFinite(o.time)) return null;
+    return o;
+  } catch (e) { return null; }
+}
+function saveTrackUpload(trackId, rec) {
+  try { localStorage.setItem('neonrush.upload.' + trackId, JSON.stringify(rec)); } catch (e) { }
+}
+
+function loadBoard(trackId, force) {
+  if (!force && lbCache[trackId]) return Promise.resolve(lbCache[trackId]);
+  return lbRequest('scores?select=name,time&track=eq.' + encodeURIComponent(trackId) + '&order=time.asc&limit=500')
+    .then(function (res) { return res.json(); })
+    .then(function (rows) {
+      var best = {}, list = [], k;
+      for (var i = 0; i < rows.length; i++) {
+        var o = rows[i]; if (!o) continue;
+        var nm = String(o.name || '').trim(); if (!nm) continue;
+        var t = Number(o.time); if (!isFinite(t)) continue;
+        if (!(nm in best) || t < best[nm]) best[nm] = t;
+      }
+      for (k in best) list.push({ name: k, time: best[k] });
+      list.sort(function (a, b) { return a.time - b.time; });
+      lbCache[trackId] = list;
+      return list;
+    });
+}
+
+function selectBoardTrack(i) {
+  if (i < 0 || i >= TRACKS.length) return;
+  boardTrack = i;
+  renderBoard();
+  if (!lbCache[TRACKS[i].id]) {
+    loadBoard(TRACKS[i].id)
+      .then(function () { renderBoard(); })
+      .catch(function () {
+        if (ui.boardList) ui.boardList.innerHTML = '<div class="board-empty">排行榜加载失败，请稍后再试</div>';
+      });
+  }
+}
+
+function renderBoard() {
+  if (!ui.boardList) return;
+  var track = TRACKS[boardTrack];
+  var list = lbCache[track.id];
+  if (ui.boardMe) ui.boardMe.innerHTML = '';
+  if (ui.boardTracks) {
+    var tabs = ui.boardTracks.querySelectorAll('button');
+    for (var t = 0; t < tabs.length; t++) {
+      if (+tabs[t].getAttribute('data-track') === boardTrack) tabs[t].classList.add('active');
+      else tabs[t].classList.remove('active');
+    }
+  }
+  if (!list) {
+    ui.boardList.innerHTML = '<div class="board-empty">加载中…</div>';
+    return;
+  }
+  var top = list.slice(0, 10);
+  if (!top.length) {
+    ui.boardList.innerHTML = '<div class="board-empty">还没有人上榜<br>跑完一局点「上传成绩」抢第一吧</div>';
+  } else {
+    var html = '';
+    for (var i = 0; i < top.length; i++) {
+      html += '<div class="board-row top' + (i + 1) + '">' +
+        '<span class="br-rank">' + (i + 1) + '</span>' +
+        '<span class="br-name"></span>' +
+        '<span class="br-time">' + fmtTime(top[i].time) + '</span></div>';
+    }
+    ui.boardList.innerHTML = html;
+    var nameEls = ui.boardList.querySelectorAll('.br-name');
+    for (var j = 0; j < nameEls.length && j < top.length; j++) nameEls[j].textContent = top[j].name;
+  }
+  var mine = getTrackUpload(track.id);
+  if (ui.boardMe) {
+    if (!mine) {
+      ui.boardMe.textContent = '你还没有上传过这条赛道的成绩';
+    } else {
+      var rank = 0;
+      for (var r = 0; r < list.length; r++) { if (list[r].name === mine.name) { rank = r + 1; break; } }
+      if (!rank) rank = 1 + list.filter(function (e) { return e.time < mine.time; }).length;
+      ui.boardMe.innerHTML = '你的成绩：<b>' + fmtTime(mine.time) + '</b>　排名：<b>第 ' + rank + ' 名</b>';
+    }
+  }
+}
+
+function openBoard(returnScreen) {
+  if (!LB_ENABLED) { showToast('排行榜未配置'); return; }
+  boardReturn = returnScreen || 'screenTitle';
+  boardTrack = TRACK_INDEX;
+  showOverlay('screenBoard');
+  if (!lbCache[TRACKS[boardTrack].id]) {
+    renderBoard();
+    loadBoard(TRACKS[boardTrack].id)
+      .then(function () { renderBoard(); })
+      .catch(function () {
+        if (ui.boardList) ui.boardList.innerHTML = '<div class="board-empty">排行榜加载失败，请稍后再试</div>';
+      });
+  } else {
+    renderBoard();
+  }
+}
+function closeBoard() { showOverlay(boardReturn); }
+
+function updateUploadBtn() {
+  if (!ui.uploadBtn) return;
+  if (!LB_ENABLED) { ui.uploadBtn.classList.add('hidden'); return; }
+  ui.uploadBtn.classList.remove('hidden');
+  if (uploadedThisRun) {
+    ui.uploadBtn.textContent = '✓ 已上传';
+    ui.uploadBtn.disabled = true;
+    ui.uploadBtn.classList.add('uploaded');
+  } else {
+    ui.uploadBtn.textContent = '🏆 上传成绩';
+    ui.uploadBtn.disabled = false;
+    ui.uploadBtn.classList.remove('uploaded');
+  }
+}
+
+function openUpload() {
+  if (!LB_ENABLED) { showToast('排行榜未配置'); return; }
+  if (uploadedThisRun) { showToast('本局成绩已经上传过了'); return; }
+  if (!G.finishTime) return;
+  if (ui.nameInput) ui.nameInput.value = getLastName();
+  if (ui.nameTime) ui.nameTime.textContent = '成绩：' + fmtTime(G.finishTime) + ' · ' + TRACKS[TRACK_INDEX].name;
+  showOverlay('screenName');
+  setTimeout(function () { try { ui.nameInput.focus(); } catch (e) { } }, 120);
+}
+
+function confirmUpload() {
+  if (uploadInFlight || uploadedThisRun) return;
+  var name = sanitizeName(ui.nameInput ? ui.nameInput.value : '');
+  if (ui.nameInput) ui.nameInput.value = name;
+  saveLastName(name);
+  var track = TRACKS[TRACK_INDEX];
+  var time = Math.round(G.finishTime * 100) / 100;
+  if (!(time > 15 && time < 7200)) { showToast('成绩异常，无法上传'); return; }
+  uploadInFlight = true;
+  showToast('正在上传…');
+  var body = JSON.stringify({ name: name, time: time, track: track.id });
+  lbRequest('scores', { method: 'POST', body: body, prefer: 'return=minimal' })
+    .then(function () {
+      uploadedThisRun = true;
+      saveTrackUpload(track.id, { name: name, time: time, at: Date.now() });
+      delete lbCache[track.id];
+      updateUploadBtn();
+      showToast('上传成功，正在刷新排行榜…');
+      return loadBoard(track.id, true);
+    })
+    .then(function () {
+      boardTrack = TRACK_INDEX;
+      boardReturn = 'screenResult';
+      showOverlay('screenBoard');
+      renderBoard();
+      var list = lbCache[track.id] || [];
+      var rank = 0;
+      for (var i = 0; i < list.length; i++) { if (list[i].name === name) { rank = i + 1; break; } }
+      showToast(rank ? '上传成功！你目前第 ' + rank + ' 名' : '上传成功！');
+    })
+    .catch(function () {
+      showToast('上传失败，请检查网络后重试');
+    })
+    .then(function () { uploadInFlight = false; });
 }
 
 /* =========================================================
@@ -2326,6 +2634,10 @@ updateTrackUI();
 updateChallengeUI();
 updateTiltUI();
 updateFsBtn();
+if (!LB_ENABLED) {
+  if (ui.boardBtn) ui.boardBtn.classList.add('hidden');
+  if (ui.uploadBtn) ui.uploadBtn.classList.add('hidden');
+}
 if (typeof navigator !== 'undefined' && navigator.standalone && ui.fsBtn) ui.fsBtn.classList.add('hidden');
 G.state = 'title';
 showOverlay('screenTitle');
@@ -2351,6 +2663,10 @@ window.__NEON__ = {
   toggleFullscreen: toggleFullscreen,
   get fullscreen() { return !!fsElement(); },
   get fsSupported() { return fsSupported(); },
+  get leaderboard() { return lbCache; },
+  openBoard: openBoard,
+  confirmUpload: confirmUpload,
+  get uploadedThisRun() { return uploadedThisRun; },
   get track() { return TRACKS[TRACK_INDEX]; },
   get tracks() { return TRACKS; },
   get raceDistance() { return RACE_DISTANCE; },
